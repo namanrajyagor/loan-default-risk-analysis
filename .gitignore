@@ -1,0 +1,20 @@
+# Python environment and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Editor settings
+.vscode/
+
+# Data files (Lending Club raw data ~5 GB from Kaggle; processed files rebuilt by the notebooks)
+data/raw/
+data/processed/
+
+# Personal interview prep (not for GitHub)
+*Study_Guide*.pdf
+
+# Windows system files
+desktop.ini
+Thumbs.db
