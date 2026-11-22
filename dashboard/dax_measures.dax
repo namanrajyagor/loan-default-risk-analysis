@@ -1,0 +1,42 @@
+// ============================================================
+// dax_measures.dax
+// All DAX measures used in loan_risk_dashboard.pbix
+// Run in Power BI's DAX query view, then "Update model with changes"
+// ============================================================
+
+DEFINE
+    // ---------- Volume ----------
+    MEASURE Loans[Total Loans] = COUNTROWS ( Loans )
+    MEASURE Loans[Total Funded] = SUM ( Loans[funded_amnt] )
+    MEASURE Loans[Avg Loan] = AVERAGE ( Loans[funded_amnt] )
+    MEASURE Loans[Avg Interest Rate] = DIVIDE ( AVERAGE ( Loans[int_rate] ), 100 )
+
+    // ---------- Risk ----------
+    MEASURE Loans[Defaults] = SUM ( Loans[is_default] )
+    MEASURE Loans[Default Rate] = DIVIDE ( [Defaults], [Total Loans] )
+    MEASURE Loans[Default Rate vs Overall] = [Default Rate] - CALCULATE ( [Default Rate], ALLSELECTED ( Loans ) )
+
+    // ---------- Profitability ----------
+    MEASURE Loans[Net Profit] = SUM ( Loans[net_profit] )
+    MEASURE Loans[Portfolio Return] = DIVIDE ( [Net Profit], [Total Funded] )
+
+    // ---------- Pricing check (break-even) ----------
+    MEASURE Loans[Amt Default Rate] = DIVIDE ( CALCULATE ( [Total Funded], Loans[is_default] = 1 ), [Total Funded] )
+    MEASURE Loans[Good Loan Return] = CALCULATE ( [Portfolio Return], Loans[is_default] = 0 )
+    MEASURE Loans[Bad Loan Return] = CALCULATE ( [Portfolio Return], Loans[is_default] = 1 )
+    MEASURE Loans[Break-even Default Rate] = DIVIDE ( [Good Loan Return], [Good Loan Return] - [Bad Loan Return] )
+    MEASURE Loans[Safety Margin] = [Break-even Default Rate] - [Amt Default Rate]
+
+EVALUATE
+    { ( [Total Loans], [Default Rate], [Portfolio Return], [Break-even Default Rate] ) }
+
+
+
+
+
+    // ---------- Display measures for KPI cards (formatted as text) ----------
+// Used because the card visual rounded large numbers (e.g. 1.32M showed as "1M")
+DEFINE
+    MEASURE Loans[KPI Total Loans] = FORMAT ( [Total Loans], "#,0" )
+    MEASURE Loans[KPI Total Funded] = FORMAT ( [Total Funded] / 1e9, "$#,0.00" ) & "B"
+    MEASURE Loans[KPI Net Profit] = FORMAT ( [Net Profit] / 1e6, "$#,0.0" ) & "M"
